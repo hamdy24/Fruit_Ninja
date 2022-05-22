@@ -3,22 +3,21 @@ import javafx.animation.KeyFrame;
 import javafx.animation.PathTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.CubicCurveTo;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.Path;
-import javafx.scene.shape.Sphere;
+import javafx.scene.shape.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
@@ -123,55 +122,317 @@ public class Main extends Application {
     public static int countLives=3;
     public static int Speed=2;
     public static  int flag=0;
+    public static boolean gameOverFlag=false;
+    public static int timeToPlayLivesAgain=3700;
 
     @Override
     public void start(Stage primaryStage) throws IOException, UnsupportedAudioFileException, LineUnavailableException {
-        /*
+
+        /*********************** V1.01 *********** LIVES MODE ***************/
+        BorderPane gameOver=new BorderPane();
+        Scene gameOverForm=new Scene(gameOver,1024,768);
+        BorderPane start=new BorderPane();
+        Scene startForm=new Scene(start,1024,768);
+
+            Pane pane = new Pane();
+        Scene livesModeV1 = new Scene(pane, 1000, 600);
+ /*
+ Setting The Background
+ */
+            FileInputStream fileInputStream_background = new
+                    FileInputStream("Photosv1.01//background1.jpg");
+            Image im = new Image(fileInputStream_background);
+            ImageView imageView = new ImageView(im);
+ /*
+ Creating Lives Viewer
+ */
+            Label label_misses = new Label();
+            // Set Lives Label Size & Graphics //
+            label_misses.setBackground(Background.EMPTY);
+            FileInputStream fileInputStream_lives = new
+                    FileInputStream("Photosv1.01//lives.png");
+            Image image_lives = new
+                    Image(fileInputStream_lives);
+            ImageView imageView_lives = new
+                    ImageView(image_lives);
+            imageView_lives.setFitWidth(100);
+            imageView_lives.setFitHeight(50);
+            label_misses.setGraphic(imageView_lives);
+            // Setting Graphics Of Number Of Lives Remaining
+//
+            Circle circle_1stmiss = new Circle(0,0,24,
+                    Color.GREEN);
+            circle_1stmiss.setStroke(Color.LIGHTGREEN);
+            circle_1stmiss.setStrokeWidth(3);
+            Circle circle_2ndmiss = new Circle(0,0,24,
+                    Color.GREEN);
+            circle_2ndmiss.setStroke(Color.LIGHTGREEN);
+            circle_2ndmiss.setStrokeWidth(3);
+            Circle circle_3rdmiss = new Circle(0,0,24,
+                    Color.GREEN);
+            HBox hBox_misses = new HBox(10);
+            circle_3rdmiss.setStroke(Color.LIGHTGREEN);
+            circle_3rdmiss.setStrokeWidth(3);
+            // Adding 3 lives Horizontally //
+            hBox_misses.getChildren().addAll(circle_1stmiss,
+                    circle_2ndmiss, circle_3rdmiss);
+            // Combining 3 Lives + Lives Label Vertically //
+            VBox vBox_misses = new VBox(10);
+            vBox_misses.getChildren().addAll(label_misses,
+                    hBox_misses);
+ /*
+ Creating Score Viewer
+ */
+            Label label_score = new Label();
+            // Set Score Label Size & Graphics //
+            label_score.setBackground(Background.EMPTY);
+            FileInputStream fileInputStream_score = new
+                    FileInputStream("Photosv1.01//score.png");
+            Image image_score = new
+                    Image(fileInputStream_score);
+            ImageView imageView_score = new
+                    ImageView(image_score);
+            imageView_score.setFitWidth(100);
+            imageView_score.setFitHeight(50);
+            label_score.setGraphic(imageView_score);
+            // Creating Score Counter //
+            Label label_scoreCount = new Label("0");
+            label_scoreCount.setFont(Font.font("Comic Sans MS", FontWeight.BOLD,26));
+                    label_scoreCount.setTextFill(Color.WHITE);
+ /*
+ Combining Score Label + Score Counter Vertically
+ */
+            VBox vBox_score = new VBox(8);
+            vBox_score.getChildren().addAll(label_score,
+                    label_scoreCount);
+ /*
+ Combining Lives Viewer + Score Viewer
+Horizontally
+ */
+            HBox hBox_combined = new HBox(690);
+
+            hBox_combined.getChildren().addAll(vBox_score,vBox_misses
+            );
+            hBox_combined.setPadding(new
+                    Insets(15,20,20,20));
+            double [] seconds = new double[4];
+            for (int i = 0 ; i < seconds.length ; i++){
+                seconds[i] = 1 + 3 * Math.random();
+            }
+ /*
+ Adding Watermelons
+ */
+            KeyFrame watermelonTime = new
+                    KeyFrame(Duration.seconds(seconds[1]), event -> {
+                try {if (primaryStage.getScene()==livesModeV1){
+                    NinjaFruit watermelon =
+                            create_fruit_stream(new FileInputStream("Photosv1.01//watermelon.png"),
+                                    new FileInputStream("Photosv1.01//halfwatermelon.png"),
+                                    new FileInputStream("Photosv1.01//halfwatermelon2.png"));
+                    watermelon.setEventHandling();
+
+                    watermelon.fruit_paths[0].setOnFinished(e->{
+                            setLivesColor(circle_1stmiss, circle_2ndmiss,
+                                    circle_3rdmiss,primaryStage,livesModeV1);});
+                    pane.getChildren().add(watermelon);}
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            });
+            Timeline timeline_watermelon = new
+                    Timeline(watermelonTime);
+
+            timeline_watermelon.setCycleCount(Timeline.INDEFINITE);
+            //timeline_watermelon.play();
+ /*
+ Adding Apples
+ */
+            KeyFrame appleTime = new
+                    KeyFrame(Duration.seconds(seconds[1]), event -> {
+                try {if (primaryStage.getScene()==livesModeV1){
+                    NinjaFruit apple =
+                            create_fruit_stream(new FileInputStream("Photosv1.01//apple.png"),
+                                    new FileInputStream("Photosv1.01//half_apple.png"),
+                                    new FileInputStream("Photosv1.01//half_apple2.png"));
+                    apple.setEventHandling();
+                    apple.fruit_paths[0].setOnFinished(e->{
+                          setLivesColor(circle_1stmiss, circle_2ndmiss,
+                                  circle_3rdmiss,primaryStage,livesModeV1);});
+                    pane.getChildren().add(apple);}
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            });
+            Timeline timeline_apple = new
+                    Timeline(appleTime);
+
+            timeline_apple.setCycleCount(Timeline.INDEFINITE);
+            //timeline_apple.play();
+ /*
+ Adding Pineapples
+ */
+            KeyFrame pineappleTime = new
+                    KeyFrame(Duration.seconds(seconds[2]), event -> {
+                try {if (primaryStage.getScene()==livesModeV1){
+                    NinjaFruit pineapple = create_fruit_stream(new FileInputStream("Photosv1.01//pineapple.png"),
+                                    new FileInputStream("Photosv1.01//top_pineapple.png"),
+                                    new FileInputStream("Photosv1.01//bottom_pineapple.png"));
+                    pineapple.setEventHandling();
+                    pineapple.fruit_paths[0].setOnFinished(e->{
+                            setLivesColor(circle_1stmiss, circle_2ndmiss,
+                                    circle_3rdmiss,primaryStage,livesModeV1);});
+                    pane.getChildren().add(pineapple);}
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            });
+            Timeline timeline_pineapple = new
+                    Timeline(pineappleTime);
+
+            timeline_pineapple.setCycleCount(Timeline.INDEFINITE);
+            //timeline_pineapple.play();
+ /*
+ Adding Lemons
+ */
+            KeyFrame lemonTime = new
+                    KeyFrame(Duration.seconds(seconds[3]), event -> {
+                try {if (primaryStage.getScene()==livesModeV1){
+                    NinjaFruit lemon =
+                            create_fruit_stream(new
+                                            FileInputStream("Photosv1.01//lemon.png"),
+                                    new
+                                            FileInputStream("Photosv1.01//half_lemon.png"),
+                                    new
+                                            FileInputStream("Photosv1.01//half_lemon.png"));
+                    lemon.setEventHandling();
+                    lemon.fruit_paths[0].setOnFinished(e->{
+                         setLivesColor(circle_1stmiss, circle_2ndmiss,
+                                circle_3rdmiss,primaryStage,livesModeV1);});
+                   pane.getChildren().add(lemon);}
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            });
+            Timeline timeline_lemon = new
+                    Timeline(lemonTime);
+
+            timeline_lemon.setCycleCount(Timeline.INDEFINITE);
+            //timeline_lemon.play();
+            Timeline lost = new Timeline(new KeyFrame(Duration.millis(100),e->{
+                timeToPlayLivesAgain+=100;
+                if(gameOverFlag){
+                    timeToPlayLivesAgain=0;
+                    gameOverFlag=false;
+                    pane.getChildren().removeAll(pane.getChildren());
+                    primaryStage.setScene(gameOverForm);
+                    //timeline_apple.stop();
+                    //timeline_lemon.stop();
+                    //timeline_pineapple.stop();
+                    //timeline_watermelon.stop();
+                    NinjaFruit.score=0;
+
+                    pane.getChildren().addAll(imageView,
+                            hBox_combined);
+                    label_scoreCount.setText(NinjaFruit.score + "");
+
+
+
+                }
+                if((primaryStage.getScene()==gameOverForm)||(primaryStage.getScene()==startForm)){
+                    circle_1stmiss.setFill(Color.GREEN);
+                    circle_2ndmiss.setFill(Color.GREEN);
+
+                }
+
+            }));
+            lost.setCycleCount(Timeline.INDEFINITE);
+            lost.play();
+ /*
+ Show Score
+ */
+            Timeline score_show = new Timeline(new
+                    KeyFrame(Duration.millis(500),
+                    e ->
+                            label_scoreCount.setText(NinjaFruit.score + "")));
+            score_show.setCycleCount(-1);
+            score_show.play();
+ /*
+ Adding Background, Lives Viewer, Score Viewer to
+a Pane
+ */
+            // setScoreCount(watermelon.getScore,label_scoreCount);
+            pane.getChildren().addAll(imageView,
+                    hBox_combined);
+            label_scoreCount.setText(NinjaFruit.score + "");
+ /*
+ Adding Pane to Scene
+ */
+
+            imageView.setFitHeight(livesModeV1.getHeight());
+            imageView.setFitWidth(livesModeV1.getWidth());
+ /*
+ Creating Stage
+ */
+            primaryStage.setResizable(false);
+            primaryStage.setTitle("Fruit Ninja");
+       /***************************  ***************************/
+
+       /******************* Bomb Mode***************************/
+
+            /*
          *********************************
          *Scenes*
          *********************************
          */
-        BorderPane start=new BorderPane();
+
         BorderPane gameBorder= new BorderPane();
 
         Pane gamePlayPane = new Pane();
         Scene gamePlay = new Scene(gamePlayPane, 1024, 768);
 
-        BorderPane gameOver=new BorderPane();
-        Scene gameOverForm=new Scene(gameOver,1024,768);
+
+
         /*
          *********************************
          *Audio*
          *********************************
          */
         //sliceSound
-        File sliceFile =new File("Slice.wav").getAbsoluteFile();
+
+        /*File sliceFile =new File("Slice.wav").getAbsoluteFile();
         AudioInputStream sliceInputStream = AudioSystem.getAudioInputStream(sliceFile);
         Clip sliceSound=AudioSystem.getClip();
-        sliceSound.open(sliceInputStream);
+        sliceSound.open(sliceInputStream);*/
         //throwSound
-        File throwFile =new File("Throw.wav").getAbsoluteFile();
+
+        /*File throwFile =new File("Throw.wav").getAbsoluteFile();
         AudioInputStream throwInputStream = AudioSystem.getAudioInputStream(throwFile);
         Clip throwSound=AudioSystem.getClip();
-        throwSound.open(throwInputStream);
+        throwSound.open(throwInputStream);*/
 
 
         //background
-        File backGroundFile =new File("Sounds/ElevatorMusic.wav").getAbsoluteFile();
+
+        /*File backGroundFile =new File("Sounds/ElevatorMusic.wav").getAbsoluteFile();
         AudioInputStream backGroundInputStream = AudioSystem.getAudioInputStream(backGroundFile);
         Clip backGroundSound=AudioSystem.getClip();
         backGroundSound.open(backGroundInputStream);
-        backGroundSound.loop(Clip.LOOP_CONTINUOUSLY);
+        backGroundSound.loop(Clip.LOOP_CONTINUOUSLY);*/
+
         //buttonHover
-        File buttonHoverFile =new File("Sounds/buttonHover.wav").getAbsoluteFile();
+
+        /*File buttonHoverFile =new File("Sounds/buttonHover.wav").getAbsoluteFile();
         AudioInputStream buttonHoverInputStream = AudioSystem.getAudioInputStream(buttonHoverFile);
         Clip buttonHoverSound=AudioSystem.getClip();
-        buttonHoverSound.open(buttonHoverInputStream);
+        buttonHoverSound.open(buttonHoverInputStream);*/
+
         //buttonClick
-        File buttonClickFile =new File("Sounds/buttonClick.wav").getAbsoluteFile();
+
+        /*File buttonClickFile =new File("Sounds/buttonClick.wav").getAbsoluteFile();
         AudioInputStream buttonClickInputStream = AudioSystem.getAudioInputStream(buttonClickFile);
         Clip buttonClickSound=AudioSystem.getClip();
-        buttonClickSound.open(buttonClickInputStream);
+        buttonClickSound.open(buttonClickInputStream);*/
+
         //Score
         Text Score =new Text(Integer.toString(countScore));
         /*
@@ -193,7 +454,7 @@ public class Main extends Application {
             Sphere sphere = creatThrowing();
             if (primaryStage.getScene() == gamePlay){
 
-                throwSound.loop(1);
+                //throwSound.loop(1);
             gamePlayPane.getChildren().add(sphere);
 
 
@@ -209,7 +470,7 @@ public class Main extends Application {
 
                     }
 
-                    sliceSound.loop(1);
+                    //sliceSound.loop(1);
                     sphere.setRadius(0);
                     Score.setText(Integer.toString(countScore));
                 }
@@ -260,13 +521,17 @@ public class Main extends Application {
         playImageView.setFitWidth(200);
         playButton.setGraphic(playImageView);
         playButton.setOnMouseEntered(e->{
-            buttonHoverSound.loop(1);
+            //buttonHoverSound.loop(1);
         });
         playButton.setOnAction(e->{
-            buttonClickSound.loop(1);
-            primaryStage.setScene(gamePlay);
-            time.play();
-            timeRate.play();
+            //buttonClickSound.loop(1);
+            /***** to play lives mode *********/
+            /*livesModePlay(primaryStage,livesModeV1,timeline_apple ,
+                    timeline_lemon,
+                    timeline_pineapple,
+                    timeline_watermelon);*/
+            /*******to play bomb mode*************/
+           //BombModePlay(primaryStage,gamePlay,time,timeRate);
         });
 
         
@@ -281,10 +546,10 @@ public class Main extends Application {
         creditsImageView.setFitWidth(200);
         creditsButton.setGraphic(creditsImageView);
         creditsButton.setOnMouseEntered(e->{
-            buttonHoverSound.loop(1);
+            //buttonHoverSound.loop(1);
         });
         creditsButton.setOnAction(e->{
-            buttonClickSound.loop(1);
+            //buttonClickSound.loop(1);
         });
 
 
@@ -298,11 +563,11 @@ public class Main extends Application {
         exitImageView.setFitWidth(200);
         exitButton.setGraphic(exitImageView);
         exitButton.setOnMouseEntered(e->{
-            buttonHoverSound.loop(1);
+            //buttonHoverSound.loop(1);
         });
         exitButton.setOnAction(e->{
             primaryStage.close();
-            buttonClickSound.loop(1);
+            //buttonClickSound.loop(1);
         });
         //Try Again button
         Button tryAgainButton=new Button();
@@ -314,13 +579,13 @@ public class Main extends Application {
         tryAgainImageView.setFitWidth(200);
         tryAgainButton.setGraphic(tryAgainImageView);
         tryAgainButton.setOnMouseEntered(e->{
-            buttonHoverSound.loop(1);
+            //buttonHoverSound.loop(1);
         });
         tryAgainButton.setOnAction(e->{
-            buttonClickSound.loop(1);
-            primaryStage.setScene(gamePlay);
-            time.play();
-            timeRate.play();
+            //buttonClickSound.loop(1);
+            primaryStage.setScene(startForm);
+            //time.play();
+            //timeRate.play();
 
         });
 
@@ -341,7 +606,7 @@ public class Main extends Application {
                                                                               BackgroundSize.DEFAULT);
         Background startBackground=new Background(startBackgroundImage);
         start.setBackground(startBackground);
-        Scene startForm=new Scene(start,1024,768);
+
 
         //GamePlay
         //Tip
@@ -457,15 +722,58 @@ public class Main extends Application {
 
 
    }
-    /* public Timeline[] timeStop(Timeline t,Timeline tt){
-        Timeline [] tarray= new Timeline[2];
-        tarray[0]=t;
-        tarray[0].stop();
-        tarray[1]=tt;
-        tarray[1].stop();
-        return tarray;
+    /************** V1.01 **************/
+    public NinjaFruit create_fruit_stream(FileInputStream
+                                                  whole_fruit,
+                                          FileInputStream
+                                                  half_1,
+                                          FileInputStream
+                                                  half_2) throws FileNotFoundException {
+        return new NinjaFruit(whole_fruit, half_1,
+                half_2);
+    }
+    public void setLivesColor(Circle circle, Circle
+            circle1, Circle circle2,Stage stage,Scene playing) {
+        if(stage.getScene()==playing){
+        if (circle1.getFill().equals(Color.RED)) {
+            // RAAAAAAAAAAAAMYYYYYYYYYYYYYYY
+            // HEEEEEEEEEEEEEEEEEEEEEEEEREEEEEEEEEEEEEEE
+            // add Game Over Scene
+            gameOverFlag=true;
 
-    }*/
+
+
+
+        }
+        else if (circle.getFill().equals(Color.RED)){
+            circle1.setFill(Color.RED);
+        }
+        else {
+            circle.setFill(Color.RED);
+        }}
+    }
+    public void gameOverExcuter(Stage stage,Scene over,Timeline t1,Timeline t2,Timeline t3){
+        stage.setScene(over);
+        t1.stop();
+        t2.stop();
+        t3.stop();
+    }
+    public void livesModePlay(Stage primaryStage,Scene livesModeV1,Timeline timeline_apple ,
+                              Timeline timeline_lemon,
+                              Timeline timeline_pineapple,
+                              Timeline timeline_watermelon){
+        if(timeToPlayLivesAgain>=3700){
+            primaryStage.setScene(livesModeV1);
+            timeline_apple.play();
+            timeline_lemon.play();
+            timeline_pineapple.play();
+            timeline_watermelon.play();}
+    }
+    public void BombModePlay(Stage primaryStage,Scene gamePlay,Timeline time,Timeline timeRate){
+        primaryStage.setScene(gamePlay);
+        time.play();
+        timeRate.play();
+    }
 
 
     public static void main(String[] args) {
