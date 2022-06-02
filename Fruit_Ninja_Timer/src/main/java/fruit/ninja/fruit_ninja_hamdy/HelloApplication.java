@@ -21,9 +21,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 public class HelloApplication extends Application {
-    Timeline timer; //game timer
-    StackPane gameFruitPane; //pane to add fruits on it
-    int    playerScore   = 0; //score variable
+    Timeline timer;            //game timer
+    StackPane gameFruitPane;   //pane to add fruits on it
+    int    playerScore   = 0;  //score variable
     int    gameTimer     = 30; //variable to control the game timer length
 
     Button playButton    = new Button();
