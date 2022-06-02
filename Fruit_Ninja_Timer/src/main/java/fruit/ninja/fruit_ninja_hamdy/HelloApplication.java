@@ -10,7 +10,6 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.media.Media;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Sphere;
 import javafx.scene.text.Font;
@@ -18,15 +17,14 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
 public class HelloApplication extends Application {
-    Timeline timer;
-    StackPane gameFruitPane;
-    int    playerScore   = 0;
-    int    gameTimer     = 30;
+    Timeline timer; //game timer
+    StackPane gameFruitPane; //pane to add fruits on it
+    int    playerScore   = 0; //score variable
+    int    gameTimer     = 30; //variable to control the game timer length
 
     Button playButton    = new Button();
     Button creditsButton = new Button();
@@ -35,14 +33,12 @@ public class HelloApplication extends Application {
     Button backButton    = new Button();
     Button exitButton    = new Button();
     Label scoreTxt       = new Label("Score : ");
-    Label scoreValue     = new Label(playerScore+"");
+    Label scoreValue     = new Label(playerScore+""); //lable to show the score
     Label timerTxt       = new Label("Timer : ");
-    Label timerValue     = new Label(gameTimer+"");
+    Label timerValue     = new Label(gameTimer+""); //lable to show remaining time
     @Override
     public void start(Stage stage) throws IOException {
-        /**             trials          **/
 
-        /************************************/
         /************************ Starting Page Background ***************************/
         Image startImage = new Image(new FileInputStream("src/main/resources/R.png"));
         ImageView startView = new ImageView(startImage);
@@ -157,7 +153,7 @@ public class HelloApplication extends Application {
         timerValue.setTextFill(Color.DARKGOLDENROD);
         timerPane.getChildren().addAll(timerTxt,timerValue);
 
-        /********************************* Sounds Button ->> currently it is the exit btn *********************************/
+        /********************************* Sounds ->> currently it is the exit btn *********************************/
         //FileInputStream soundStream = new FileInputStream("Sounds/ElevatorMusic.mp3");
         //AudioClip soundClip = new AudioClip(getClass().getResource("Sounds/ElevatorMusic.mp3").toExternalForm());
 
@@ -192,8 +188,7 @@ public class HelloApplication extends Application {
         creditsButton.setOnMouseReleased( e -> {
             creditsBtnView.setFitHeight(100);
             creditsBtnView.setFitWidth(150);
-        /******************* Go to Game Over scene ->> supposed to view credits  **********************/
-            startTimerMode(stage,gamingScene,gameFruitPane);
+        /******************* Go to Gaming scene ->> supposed to view credits  **********************/
 
         });
 
@@ -229,7 +224,7 @@ public class HelloApplication extends Application {
             endRandThrow(gameFruitPane);
             startRandThrow();
             timer.play();
-*/
+            */
         });
 
         /************************* home button action *******************************/
@@ -263,33 +258,23 @@ public class HelloApplication extends Application {
         });
 
         /********************   TimeLines   *********************************/
-            Timeline resetGame = new Timeline(new KeyFrame(Duration.millis(100),e->{
-                if(gameTimer==0){
-                    timer.pause(); // game timer stopping
-                    endRandThrow(gameFruitPane);
-                    gameTimer = 20;
-                    playerScore = 0;
-                }
-            }));
-            resetGame.setCycleCount(Timeline.INDEFINITE);
-            resetGame.play();
 
         timer = new Timeline(new KeyFrame(Duration.millis(1000),e->{
             gameTimer--;
-            if(gameTimer == 0){
-                timer.stop();
-                gameTimer = 30;
-                playerScore = 0;
-                timerValue.setText(gameTimer+"");
-                scoreValue.setText(playerScore+"");
+            if(gameTimer == 0){ //if time of current game ended then reset game parameters
+                timer.stop(); //stop it so it don't run in background
+                gameTimer = 30; //reset timing value
+                playerScore = 0; //reset player score
+                timerValue.setText(gameTimer+""); //update lables
+                scoreValue.setText(playerScore+""); //update lables
 
-                stage.setScene(gameOverScene);
+                stage.setScene(gameOverScene); //show game over scene
             }
             else
-                timerValue.setText(gameTimer+"");
+                timerValue.setText(gameTimer+""); //if time didn't end yet then update timer lable with current remaining time
         }));
-        timer.setCycleCount(-1);
-        //timer.play();
+        timer.setCycleCount(Timeline.INDEFINITE);
+
         /************************ Stage default scene show ***************************/
         stage.setTitle("Fruit Ninja");
 
@@ -297,33 +282,35 @@ public class HelloApplication extends Application {
         stage.setScene(startScene);
         stage.show();
     }
-
+    /** randomize keyFrame so we use the timeline in the method */
         KeyFrame randomKey = new KeyFrame(Duration.millis(1000) ,
                 randomizeEvent->{
+            //each second create new sphere with random radius and set its arc path with random x radius and y radius
                     Sphere f = new Fruit(30+Math.random()*10,400+Math.random()*400,500+Math.random()*600).sphere;
-                    gameFruitPane.getChildren().add( f );
-                    f.setOnMouseEntered(hitEvent->{
-                        gameFruitPane.getChildren().remove( f );
-                        playerScore++;
+                    gameFruitPane.getChildren().add( f ); //add that sphere
+                    f.setOnMouseEntered(hitEvent->{ //if sphere was touched
+                        gameFruitPane.getChildren().remove( f ); // remove that single sphere
+                        playerScore++; //then increase the score and update the lable
                         scoreValue.setText(playerScore+"");
-                        if(playerScore%15 == 0 && playerScore >= 0) {
+                        if(playerScore%15 == 0 && playerScore >= 0) { //if the score is dividable with 15 . . increase game timer by 10
                             gameTimer += 10;
-                            timerValue.setText(gameTimer+"");
+                            timerValue.setText(gameTimer+""); // update new time in the lable
                         }
                     });
 
                 });
-    Timeline randomize= new Timeline(randomKey);
+    Timeline randomize= new Timeline(randomKey); //create the timeline but don't run it yet
 
+    // method to start timer mode with defaut score and game timer on the gaming scene
     void startTimerMode(Stage stage  , Scene timerScene , StackPane fruitPane){
         stage.setScene(timerScene);
         playerScore = 0;
         gameTimer =30;
         timerValue.setText(gameTimer+"");
         scoreValue.setText(playerScore+"");
-        timer.play();
-        endRandThrow(fruitPane);
-        startRandThrow();
+        timer.play(); // start the game timer counting
+        endRandThrow(fruitPane); // end or delete any old throwing if exists
+        startRandThrow(); // start new random throwing
     }
     void exitTimerMode(Stage stage ,Scene returnScene , StackPane fruitPane){
         stage.setScene(returnScene);
@@ -333,13 +320,13 @@ public class HelloApplication extends Application {
 
     void startRandThrow(){
         randomize.setCycleCount(Timeline.INDEFINITE);
-        //randomize.setRate(1);
-        randomize.play();
+        //randomize.setRate(1); // is supposed to be changed periodicly to increase game throwing speed
+        randomize.play(); //start creating spheres randomly
     }
     void endRandThrow(StackPane pane){
-        randomize.pause();
+        randomize.pause(); // end random spheres creation
 
-        pane.getChildren().removeAll(pane.getChildren());
+        pane.getChildren().removeAll(pane.getChildren()); //remove all the spheres on the fruit pane to be ready for new gaming trials
 
     }
 
