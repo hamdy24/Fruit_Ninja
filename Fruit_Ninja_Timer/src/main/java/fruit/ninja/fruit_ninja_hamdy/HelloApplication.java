@@ -30,8 +30,8 @@ public class HelloApplication extends Application {
     Button creditsButton = new Button();
     Button tryAgainButton= new Button();
     Button homeButton    = new Button();
-    Button backButton    = new Button();
     Button exitButton    = new Button();
+    Button backButton    = new Button();
     Label scoreTxt       = new Label("Score : ");
     Label scoreValue     = new Label(playerScore+""); //lable to show the score
     Label timerTxt       = new Label("Timer : ");
@@ -237,7 +237,7 @@ public class HelloApplication extends Application {
         homeButton.setOnMouseReleased( e -> {
             homeBtnView.setFitHeight(70);
             homeBtnView.setFitWidth(125);
-            /******************* Go to Game Over scene  **********************/
+            /******************* Go to Game Start scene  **********************/
             stage.setScene(startScene);
             endRandThrow(gameFruitPane);
         });

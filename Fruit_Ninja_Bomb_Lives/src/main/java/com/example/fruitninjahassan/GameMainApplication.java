@@ -35,15 +35,72 @@ public class GameMainApplication extends Application {
      int Speed=2;
      int timeToPlayLivesAgain=3700;
      boolean gameOverFlag=false;
+    Timeline timer;            //game timer
+    StackPane gameFruitPane;   //pane to add fruits on it
+    int    playerScore   = 0;  //score variable
+    int    gameTimer     = 30; //variable to control the game timer length
+    Button backButton    = new Button();
+    Label scoreTxt       = new Label("Score : ");
+    Label scoreValue     = new Label(playerScore+""); //lable to show the score
+    Label timerTxt       = new Label("Timer : ");
+    Label timerValue     = new Label(gameTimer+""); //lable to show remaining time
 
     @Override
     public void start(Stage primaryStage) throws IOException {
+        /************************ TIMER MODE SCENE *********************************/
+
+        /************************ Gaming Page Background ***************************/
+        Image gameImage = new Image(new FileInputStream("items/gameplay.jpg"));
+        ImageView gameView = new ImageView(gameImage);
+        gameView.setFitWidth(1150);
+        gameView.setFitHeight(680);
+        /*************************** Gaming Page Scene *****************************/
+        FlowPane backPane = new FlowPane(backButton);
+        backPane.setAlignment(Pos.BOTTOM_LEFT);
+
+        HBox scorePane = new HBox(10);  //score nodes added later
+        HBox timerPane = new HBox(10);  //timer nodes added later
+        Pane gameBackgroundPane = new Pane(gameView); //adding previous gaming view
+        gameFruitPane = new StackPane(); //fruits added later
+
+        HBox score_timerPane = new HBox(600,scorePane ,timerPane);
+        BorderPane gamePlayPane = new BorderPane(gameFruitPane);
+        gamePlayPane.setTop(score_timerPane);
+        gamePlayPane.setLeft(backPane);
+        StackPane gamePane = new StackPane(gameBackgroundPane , gamePlayPane);
+        Scene timerGamingScene = new Scene(gamePane, 1080, 660);
+
+        /*************************** Score Label *************************************/
+        scoreTxt.setFont( Font.font("Times New Roman" , FontWeight.BOLD ,50) );
+        scoreTxt.setTextFill(Color.CORNSILK);
+        scoreValue.setFont( Font.font("Times New Roman" , FontWeight.EXTRA_BOLD ,50) );
+        scoreValue.setTextFill(Color.CORNSILK);
+        scorePane.getChildren().addAll(scoreTxt,scoreValue);
+
+        /*************************** Timer Label *************************************/
+        timerTxt.setFont( Font.font("Times New Roman" , FontWeight.BOLD ,50) );
+        timerTxt.setTextFill(Color.DARKCYAN);
+        timerValue.setFont( Font.font("Times New Roman" , FontWeight.EXTRA_BOLD ,50) );
+        timerValue.setTextFill(Color.DARKGOLDENROD);
+        timerPane.getChildren().addAll(timerTxt,timerValue);
+
+        /********************************* Back Button *********************************/
+
+        Image backBtnImage =new Image(new FileInputStream("items/Back.png") );
+        ImageView backBtnView = new ImageView(backBtnImage);
+        backBtnView.setFitHeight(50);   backBtnView.setFitWidth(125);
+
+        backButton.setGraphic(backBtnView);//added image to button
+        backButton.setBackground(Background.EMPTY); //made button hidden to just view image
+
+
+
         /**************** LIVES MODE SCENE ***************/
 
         Pane pane = new Pane();
         BorderPane startLives=new BorderPane();
-        Scene startForm=new Scene(startLives,1024,768);
-        Scene livesModeV1 = new Scene(pane, 1024, 768);
+        Scene startForm=new Scene(startLives,1024,660);
+        Scene livesModeV1 = new Scene(pane, 1024, 660);
 
         /*********** BOOM MODE SCENES ***********/
 
@@ -55,10 +112,10 @@ public class GameMainApplication extends Application {
         Pane MusicPane = new Pane();
         Pane boomPlayPane = new Pane();
 
-        Scene gameOverScene = new Scene(gameOver,1024,768);
-        Scene startScene    = new Scene(start,1024,768);
-        Scene gameChooseScene = new Scene(gameChoose,1024,768);
-        Scene boomPlayScene = new Scene(boomPlayPane,1024,768);
+        Scene gameOverScene = new Scene(gameOver,1024,660);
+        Scene startScene    = new Scene(start,1024,660);
+        Scene gameChooseScene = new Scene(gameChoose,1024,660);
+        Scene boomPlayScene = new Scene(boomPlayPane,1024,660);
 
 
  /************************ Setting The Background ***************/
@@ -334,7 +391,7 @@ public class GameMainApplication extends Application {
              playButton.setOnMouseExited(e-> buttonHoverSound1.stop());
              playButton.setOnAction(e->{
             buttonClickSound1.play();
-                 primaryStage.setScene(gameChooseScene);
+            primaryStage.setScene(gameChooseScene);
             buttonClickSound1.stop();
         });
 
@@ -429,6 +486,19 @@ public class GameMainApplication extends Application {
             buttonClickSound1.stop();
         });
 
+        /************* timer back buttun *********************/
+        backButton.setOnMousePressed( e -> {
+            /***********  make like animation when clicked or released ***********/
+            backBtnView.setFitHeight(55);
+            backBtnView.setFitWidth(110);
+        });
+        backButton.setOnMouseReleased( e -> {
+            backBtnView.setFitHeight(65);
+            backBtnView.setFitWidth(120);
+            /******************* Go to Game Over scene  **********************/
+            primaryStage.setScene(gameChooseScene);
+            endRandThrow(gameFruitPane);
+        });
 
         /////////////// back home button
         Button backtohomebutton = new Button();
@@ -509,6 +579,9 @@ public class GameMainApplication extends Application {
         timerModeButton.setOnAction(e->{
             buttonClickSound1.play();
             buttonClickSound1.stop();
+        });
+        timerModeButton.setOnAction(e->{
+            startTimerMode(primaryStage,timerGamingScene,gameFruitPane);
         });
 
         /////////////// lives mode button
@@ -661,7 +734,23 @@ public class GameMainApplication extends Application {
         boomPlayPane.getChildren().add(gameBorder);
 
 
+        /******************** TIMER MODE TimeLines   *********************************/
 
+        timer = new Timeline(new KeyFrame(Duration.millis(1000),e->{
+            gameTimer--;
+            if(gameTimer == 0){ //if time of current game ended then reset game parameters
+                timer.stop(); //stop it so it don't run in background
+                gameTimer = 30; //reset timing value
+                playerScore = 0; //reset player score
+                timerValue.setText(gameTimer+""); //update lables
+                scoreValue.setText(playerScore+""); //update lables
+
+                primaryStage.setScene(gameOverScene); //show game over scene
+            }
+            else
+                timerValue.setText(gameTimer+""); //if time didn't end yet then update timer lable with current remaining time
+        }));
+        timer.setCycleCount(Timeline.INDEFINITE);
 
         /**
         ************** stage show ****************
@@ -710,7 +799,47 @@ public class GameMainApplication extends Application {
         time.play();
         timeRate.play();
     }
+/****************************** related to timer mode ***************************/
+    /** randomize keyFrame so we use the timeline in the method */
+    KeyFrame randomKey = new KeyFrame(Duration.millis(1000) ,
+            randomizeEvent->{
+                //each second create new sphere with random radius and set its arc path with random x radius and y radius
+                Sphere f = new Fruit(30+Math.random()*10,400+Math.random()*400,500+Math.random()*600).sphere;
+                gameFruitPane.getChildren().add( f ); //add that sphere
+                f.setOnMouseEntered(hitEvent->{ //if sphere was touched
+                    gameFruitPane.getChildren().remove( f ); // remove that single sphere
+                    playerScore++; //then increase the score and update the lable
+                    scoreValue.setText(playerScore+"");
+                    if(playerScore%15 == 0 && playerScore >= 0) { //if the score is dividable with 15 . . increase game timer by 10
+                        gameTimer += 10;
+                        timerValue.setText(gameTimer+""); // update new time in the lable
+                    }
+                });
 
+            });
+    Timeline randomize= new Timeline(randomKey); //create the timeline but don't run it yet
+
+    // method to start timer mode with defaut score and game timer on the gaming scene
+    void startTimerMode(Stage stage  , Scene timerScene , StackPane fruitPane){
+        stage.setScene(timerScene);
+        playerScore = 0;
+        gameTimer =30;
+        timerValue.setText(gameTimer+"");
+        scoreValue.setText(playerScore+"");
+        timer.play(); // start the game timer counting
+        endRandThrow(fruitPane); // end or delete any old throwing if exists
+        startRandThrow(); // start new random throwing
+    }
+
+    void startRandThrow(){
+        randomize.setCycleCount(Timeline.INDEFINITE);
+        //randomize.setRate(1); // is supposed to be changed periodicly to increase game throwing speed
+        randomize.play(); //start creating spheres randomly
+    }
+    void endRandThrow(StackPane pane){
+        randomize.pause(); // end random spheres creation
+        pane.getChildren().removeAll(pane.getChildren()); //remove all the spheres on the fruit pane to be ready for new gaming trials
+    }
     public static void main(String[] args) {
         launch();
     }
